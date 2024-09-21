@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Sophie Bluel - Architecte d'intérieur</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Work+Sans&display=swap"
+    rel="stylesheet">
+  <meta name="description" content="">
+  <link rel="stylesheet" href="./assets/style.css">
+  <script src="connect.js"></script>
+</head>
+
+<body>
+  <header>
+    <a href="index.html" class="hrefSite">
+      <h1>Sophie Bluel <span>Architecte d'intérieur</span></h1>
+    </a>
+    <nav>
+      <ul>
+        <li><a href="index.html#portfolio" class="nav-item">projets</a></li>
+        <li><a href="index.html#contact" class="nav-item">contact</a></li>
+        <li><a href="login.html" class="nav-item">login</a></li>
+        <li><img src="./assets/icons/instagram.png" alt="Instagram"></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <section id="connection">
+      <h2 class="logIn">Log In</h2>
+      <form id="logForm">
+        <div class="infoEmail">
+          <label for="adress">Email</label>
+          <input type="email" name="adress" id="adress" pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$" required />
+        </div>
+        <div class="infoPassword">
+          <label for="password">Mot de passe</label>
+          <input type="password" name="password" id="password" required />
+        </div>
+        <button type="submit" id="btnConnect">Se connecter</button><br />
+        <a href="#" class="passwordForget">Mot de passe oublié</a>
+        <p id="error-message" style="color: red; display: none; margin-top: 15px">Email ou mot de passe incorrect.</p>
+      </form>
+    </section>
+  </main>
+  <footer>
+    <nav>
+      <ul>
+        <li>Mentions Légales</li>
+      </ul>
+    </nav>
+  </footer>
+</body>
+
+</html>

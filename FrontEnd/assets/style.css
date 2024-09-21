@@ -47,17 +47,53 @@ table {
 	border-spacing: 0;
 }
 /** end reset css**/
+.black-banner {
+	padding: 15px;
+	column-gap: 6px;
+	text-align: center;
+	margin-bottom: -10px;
+	flex-direction: row;
+	justify-content: center;
+	background-color: black;
+}
+
+.editify i {
+	color: azure;
+	cursor: pointer;
+	font-size: 1.2em;
+  margin-right: 5px;
+	transition: all 0.3s ease;
+	&:hover {
+		transform: scale(1.1);
+	}
+}
+
+.edition {
+	color: azure;
+}
+
 body {
 	max-width: 1140px;
 	margin:auto;
 	font-family: 'Work Sans' ;
 	font-size: 14px;
 }
+
 header {
 	display: flex;
 	justify-content: space-between;
 	margin: 50px 0
 }
+
+.hrefSite {
+	margin-left: 10px;
+	cursor: pointer;
+	text-decoration: none;
+	&:hover {
+		text-decoration: none;
+	}
+}
+
 section {
 	margin: 50px 0
 }
@@ -78,21 +114,34 @@ h1 > span {
 ;
 }
 
-h2{
+.designer {
 	font-family: 'Syne';
 	font-weight: 700;
 	font-size: 30px;
 	color: #1D6154
 }
+
 nav ul {
+	column-gap: 30px;
 	display: flex;
 	align-items: center;
 	list-style-type: none;
 
 }
+
 nav li {
 	padding: 0 10px;
 	font-size: 1.2em;
+}
+
+.nav-item {
+	color: black;
+	margin-top: -1px;
+	text-decoration: none;
+}
+
+.nav-item:hover {
+	font-weight: bold;
 }
 
 li:hover {
@@ -125,32 +174,141 @@ li:hover {
 	text-align: center;
 	margin-bottom: 1em;
 }
-.gallery {
-	width: 100%;
-	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
-	grid-column-gap: 20px;
-	grid-row-gap: 20px;
+
+.myProjets {
+	display: flex;
+	column-gap: 20px;
+  text-align: center;
+	flex-direction: row;
+	justify-content: center;
 }
 
-.gallery img {
-	width: 100%;
+.myWorks {
+	font-family: 'Syne';
+	font-weight: 700;
+	font-size: 30px;
+	color: #1D6154;
+}
 
+.listBtnFilter {
+	padding-top: 15px;
+	justify-content: center;
 }
-#contact {
-	width: 50%;
-margin: auto;
+
+.modify {
+	margin-left: 12px;
+	margin-top: -30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-#contact > * {
+
+.modify i {
+	cursor: pointer;
+	font-size: 1.2em;
+  margin-right: 5px;
+	transition: all 0.3s ease;
+	&:hover {
+		transform: scale(1.1);
+	}
+}
+
+.modify p {
+	margin-left: 3px;
+}
+
+#connection {
+	width: 100%;
+	max-width: 400px;
+	padding: 20px;
+	top: 50%;
+	left: 50%;
+	margin-bottom: 368px;
+	position: relative;
+	transform: translate(-50%, 25%);
+	background-color: #fff;
 	text-align: center;
-
 }
-#contact h2{
+
+.logIn {
+	font-size: 1.9em;
+	color: #1D6154;
+	font-family: 'Syne', sans-serif;
 	margin-bottom: 20px;
 }
+
+#logForm {
+	display: flex;
+	flex-direction: column;
+}
+
+.infoEmail {
+	margin-bottom: 20px;
+	text-align: left;
+	display: flex;
+	flex-direction: column;
+}
+
+.infoPassword {
+	margin-top: 6px;
+	margin-bottom: 20px;
+	text-align: left;
+	display: flex;
+	flex-direction: column;
+}
+
+#adress, #password {
+	width: 90%;
+	padding: 15px;
+	margin-top: 5px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+}
+
+button#btnConnect {
+	padding: 8px;
+	border: none;
+	width: 210px;
+	display: block;
+	margin: 10px auto;
+	border-radius: 5px;
+	font-family: 'Syne';
+	background-color: darkgreen;
+	color: white;
+	font-size: 1.2em;
+	border-radius: 30px;
+	cursor: pointer;
+}
+
+button#btnConnect{
+	background-color: rgb(0, 0, 0);
+}
+
+
+#contact {
+	width: 50%;
+	margin: auto;
+}
+
+#contact > * {
+	text-align: center;
+}
+
+#contact h2{
+	margin-bottom: 20px;
+	
+	font-weight: 700;
+	font-size: 30px;
+	color: #1D6154
+}
+
+#contact p {
+	margin-bottom: -10px;
+}
+
 #contact form {
 	text-align: left;
-	margin-top:30px;
+	margin-top: 16px;
 	display: flex;
 	flex-direction: column;
 }
@@ -161,23 +319,30 @@ margin: auto;
 	border: none;
 	box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.09);
 }
+
 #contact label {
 	margin: 2em 0 1em 0;
 }
+
 #contact textarea {
 	border: none;
 	box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.09);
 }
 
-input[type="submit"]{
+input[type="submit"] {
 	font-family: 'Syne';
 	font-weight: 700;
 	color: white;
 	background-color: #1D6154;
 	margin : 2em auto ;
 	width: 180px;
+	cursor: pointer;
 	text-align: center;
 	border-radius: 60px ;
+}
+
+input[type="submit"] {
+	background-color: black;
 }
 
 footer nav ul {
@@ -185,4 +350,3 @@ footer nav ul {
 	justify-content: flex-end;
 	margin: 2em
 }
-
