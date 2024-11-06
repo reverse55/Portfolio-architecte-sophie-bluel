@@ -1,720 +1,761 @@
+// Add dynamic works to the portfolio gallery on the page
+// Fetch existing works from the API
 document.addEventListener("DOMContentLoaded", async () => {
-  const data = await fetch("http://localhost:5678/api/works");
-  const piece = await data.json();
-  const picture = piece
+  // Select the gallery element where works will be displayed
+  let gallery = document.querySelector(".gallery");
 
-  // Boucle
-  picture.forEach((work) => {
-    // Create TABLEAU
-    let Tableau = document.createElement("figure");
-    Tableau.className = `tool category-id-${work.categoryId}`;
+    // Fetch works data from the specified API endpoint
+    let response = await fetch("http://localhost:5678/api/works");
+    // Convert the response to JSON format
+    let dataWorks = await response.json();
+    let works = dataWorks; // Store the fetched works in a variable
+    console.log(works); // Log the works to the console for debugging
 
+    // Loop through each work in the fetched data
+    works.forEach((work) => {
+      // Create a <figure> element for each work
+      let figureSite = document.createElement("figure");
+      // Set class names for styling based on the category ID
+      figureSite.className = `work-item category-id-0 category-id-${work.categoryId}`;
+      figureSite.id = `work-item-${work.id}`; // Set a unique ID for the figure
 
+      // Create an <img> element to display the work's image
+      let imageSite = document.createElement("img");
+      imageSite.src = work.imageUrl; // Set the source of the image
+      imageSite.alt = work.title; // Set the alt text for the image
 
-    // Create img
-    let img = document.createElement("img");
-    img.src = work.imageUrl;
-    img.alt = work.title;
+      // Create a <figcaption> element for the work's title
+      let figCaptionSite = document.createElement("figcaption");
+      figCaptionSite.textContent = work.title; // Set the text content to the work's title
 
+      // Append the <img> and <figcaption> to the <figure>
+      figureSite.appendChild(imageSite);
+      figureSite.appendChild(figCaptionSite);
+      // Append the <figure> to the gallery
+      gallery.appendChild(figureSite);
 
-    // Create title
-    let title = document.createElement("figcaption");
-    title.textContent = work.title;
-
-    // take gallery
-    let gallery = document.querySelector(".gallery");
-
-    //Append
-    Tableau.appendChild(img);
-    Tableau.appendChild(title);
-    gallery.appendChild(Tableau)
-  });
-
+      console.log(work.title); // Log the work's title to the console
+    });
+  
 });
 
+
+// Adding category filters to filter works in the gallery
+// Fetching existing categories from the API
 document.addEventListener("DOMContentLoaded", async () => {
-  const response = await fetch("http://localhost:5678/api/categories");
-  const categories = await response.json();
-
-  // Add "id" and "Tous" 
-  categories.unshift({ id: 0, name: "Tous" });
-
-  // boucle
-  categories.forEach((category) => {
-    // Create a button for each category
-    let button = document.createElement("button");
-    button.classList.add("filtre-management", "conception");
-
-    if (category.id === 0) {
-      button.classList.add("filter-active");
-    }
-
-    button.textContent = category.name;
-    button.setAttribute("data-category-id", category.id);
-
-    // Add the button to the filters 
-    document.querySelector(".filters").appendChild(button);
+    // Fetch the categories from the API
+    let response = await fetch("http://localhost:5678/api/categories");
 
 
-    button.addEventListener("click", () => {
-      // Remove the "display" class from all buttons
-      document.querySelectorAll(".filtre-management").forEach((btn) => {
-        btn.classList.remove("filter-active");
-      });
+    let dataCategories = await response.json();
+    
+    // Store the categories in a variable
+    let categories = dataCategories; 
 
-      // Add the "display" class to the clicked button
-      button.classList.add("filter-active");
+    // Add an additional category 'All' at the start of the categories array
+    categories.unshift({ id: 0, name: "Tous" });
 
-      // Get the selected category ID
-      let selectedCategoryId = button.getAttribute("data-category-id");
+    // Loop through each category to create filter buttons
+    categories.forEach((category) => {
+      // Create a <button> element for filtering
+      let filterButton = document.createElement("button");
+      filterButton.classList.add("work-filter"); // Add a class for filtering
+      filterButton.classList.add("filters-design"); // Add a class for styling
 
-      // Filter the works based on the selected category
-      document.querySelectorAll(".tool").forEach((workItem) => {
-        if (selectedCategoryId == 0) {
-          // Show all works when "Tous"
-          workItem.style.display = "block";
-        } else {
-          // Hide all
-          workItem.style.display = "none";
+      // If it's the 'All' category, add active class to highlight it
+      if (category.id === 0) {
+        filterButton.classList.add("filter-active", "filter-all");
+      }
 
-          // Only show works from the selected category
-          document.querySelectorAll(`.tool.category-id-${selectedCategoryId}`).forEach((filteredWork) => {
-            filteredWork.style.display = "block";
-          });
-        }
+      // Set a custom attribute to store the category ID
+      filterButton.setAttribute("data-filter", category.id);
+      // Set the button's text to the category name
+      filterButton.textContent = category.name;
+
+      // Append the new button to the existing filters container
+      document.querySelector("div.filters").appendChild(filterButton);
+
+      // Add a click event listener to the filter button
+      filterButton.addEventListener("click", function (event) {
+        event.preventDefault(); // Prevent the default action of the button
+
+        // Remove active class from all filter buttons
+        document.querySelectorAll(".work-filter").forEach((button) => {
+          button.classList.remove("filter-active");
+        });
+        // Add active class to the clicked button
+        event.target.classList.add("filter-active");
+
+        // Get the category ID from the clicked button
+        let categoryId = filterButton.getAttribute("data-filter");
+
+        // Hide all work items first
+        document.querySelectorAll(".work-item").forEach((workItem) => {
+          workItem.style.display = "none"; // Hide each work item
+        });
+
+        // Show work items that belong to the selected category
+        document.querySelectorAll(`.work-item.category-id-${categoryId}`).forEach((workItem) => {
+          workItem.style.display = "block"; // Show the matching work items
+        });
       });
     });
-  });
 });
-
-
 
 // LOGIN
+// This function changes the interface to show admin elements when a user is logged in
 function handleAdminMode() {
-  // Check if the the existence of token and userId in localStorage
-  const token = localStorage.getItem("token");
-  const userId = localStorage.getItem("userId");
+  // Get the token and userId from local storage
+  const token = localStorage.getItem("token"); // Retrieve the token
+  const userId = localStorage.getItem("userId"); // Retrieve the userId
 
-  if (token && userId) {
-    // Add the 'connected' class to the body to show the admin mode
-    document.body.classList.add("connected");
+  // Check if both the token and userId exist
+  if (token !== null && userId !== null) {
+    // If the user is authenticated, make changes to the UI
 
-    document.getElementById("banner").style.display = "flex";
-    document.getElementById("hide-filter").style.display = "none";
-    document.getElementById("hideLogIn").style.display = "none"
-    document.getElementById("backup").style.display="flex"
+    // Add the class 'connected' to the body element
+    document.querySelector("body").classList.add("connected");
+
+    // Show the admin bar by changing its display style to 'flex'
+    const adminBar = document.getElementById("barre");
+    adminBar.style.display = "flex";
+
+    // Hide the filters section since it's not needed for admins
+    const filtersSection = document.getElementById("all-filters");
+    filtersSection.style.display = "none";
+
+    // Add padding to the admin-only space for better layout
+    const adminSpace = document.getElementById("space-only-admin");
+    adminSpace.style.paddingBottom = "25px";
   }
 }
 
-// LOGOUT FUNCTION
-document.getElementById("logout").addEventListener("click", () => {
-  
 
-  localStorage.removeItem("token");
-  localStorage.removeItem("userId");
+// LOGOUT
+// This function clears the local storage data and updates the visual appearance of the page when the admin logs out
 
-  document.body.classList.remove("connected");
+// Add an event listener to the logout link in the navigation
+document.getElementById("nav-logout").addEventListener("click", (event) => {
+    event.preventDefault(); // Prevent the default behavior of the link
 
-  
-  document.getElementById("banner").style.display = "none";
+    // Remove userId and token from local storage to log the user out
+    localStorage.removeItem("userId"); // Remove the userId
+    localStorage.removeItem("token"); // Remove the authentication token
 
-  
-  document.getElementById("hide-filter").style.display = "flex";
-  document.getElementById("hideLogIn").style.display = "flex"
-  document.getElementById("backup").style.display="none"
+    // Update the page to reflect that the admin is logged out
+    document.querySelector("body").classList.remove("connected"); // Remove the 'connected' class from the body
 
-}); 
+    // Hide the admin bar since the user is no longer logged in
+    let topBar = document.getElementById("barre");
+    topBar.style.display = "none"; // Set the display of the admin bar to 'none'
 
+    // Show the filters section, which is needed when the admin is logged out
+    let filters = document.getElementById("all-filters");
+    filters.style.display = "flex"; // Set the display of the filters section to 'flex'
 
-function clickOnLinkModifier() {
-  // Get the link element by ID
-  linkForModify = document.getElementById("backup");
-
-  // Check if the link exists
-  if (linkForModify) {
-    // Add a click event listener to the link
-    linkForModify.onclick = () =>{
-  
-      document.getElementById("modal").style.display = "flex"; // 
-      document.getElementById("modal-works").style.display = "flex"; 
-
-      // Call the function to fetch works and update the modal
-      fetchWorksAndUpdateModal();
-    };
-  }
-}
-
-// Function to fetch works from the API and update the modal
-function fetchWorksAndUpdateModal() {
-  // Use the Fetch API to get data from the API
-  fetch("http://localhost:5678/api/works")
-    .then(function(response) {
-      // Check if the response is ok
-      if (!response.ok) {
-        throw new Error("Network response was not ok: " + response.status);
-      }
-      return response.json(); // Parse the JSON data
-    })
-    .then(function(data) {
-      // Update the modal with the fetched data
-      updateWorksModal(data);
-    })
-    .catch(function(error) {
-      console.error("There was a problem with the fetch operation:", error);
-    });
-}
-
-// Function to update the modal with works data
-function updateWorksModal(data) {
-modalWorksContainer = document.getElementById("modal-works");
-
-  // Clear existing content
-  modalWorksContainer.innerHTML = "";
-
-  // Loop through the data and create elements to display
-  data.forEach(function(work) {
-    workElement = document.createElement("div"); // Create a new div for each work
-    workElement.textContent = work.title; // Set the title
-    modalWorksContainer.appendChild(workElement); // Add the new element to the modal
+    // Reset the padding for the admin-only space to improve layout
+    let space = document.getElementById("space-only-admin");
+    space.style.paddingBottom = "0"; // Set padding-bottom to 0
   });
+
+
+
+
+// click sur on link "modifier"
+function clickOnLinkModify() {
+  let lienPourModifier = document.getElementById("update-works");
+    lienPourModifier.addEventListener("click", function (event) {
+      event.preventDefault();
+    
+      document.getElementById("modal").style.display = "flex";
+      document.getElementById("modal-works").style.display = "block";
+    });
+  fetchWorksAndUpdateModal();
 }
 
-function createWorkFigureInModal(work) {
-  // Check if the work object is valid
-  if (!work) {
-    console.error("Work object is missing.");
-    return; 
-  }
 
-  // Create the figure element
+
+// Request to the API to retrieve existing works.
+// If the response is okay, call the function updateWorksModal with the received data.
+async function fetchWorksAndUpdateModal() {
+
+    // Send a request to the API to fetch existing works
+    const response = await fetch("http://localhost:5678/api/works");
+    // Parse the response data as JSON
+    const data = await response.json();
+
+    // Call the function to update the modal with the fetched works data
+    updateWorksModal(data);
+  } 
+
+
+// In modal - constructing and returning a <figure> element
+// that will contain all the information about the work
+function createWorkFigureInModal(work) {
+  // Create a <figure> element to represent the work
   let myFigure = document.createElement("figure");
 
-  // Set the class name based on the category ID
-  myFigure.className = "work-item category-id-" + work.categoryId;
+  // Set class names for the figure element to categorize it
+  myFigure.className = `work-item category-id-0 category-id-${work.categoryId}`;
+  
+  // Set the ID for the figure element for easy reference
+  myFigure.id = `work-item-popup-in-modal-${work.id}`;
 
-  // Set a ID
-  myFigure.id = "work-item-popup-in-modal-" + work.id;
+  // Append an image element for the work to the figure
+  myFigure.appendChild(createImageElement(work));
 
-  // Create and append the image element
-  let imgElement = createImageElement(work); 
-  if (imgElement) {
-    myFigure.appendChild(imgElement);
-  }
+  // Append a trash icon element for deleting the work to the figure
+  myFigure.appendChild(createTrashIcon(work));
 
-  // Create and append the trash icon
-  let trashIcon = createTrashIcon(work); 
-  if (trashIcon) {
-    myFigure.appendChild(trashIcon);
-  }
+  // Return the constructed figure element
   return myFigure;
 }
 
 
+
+
+
 function updateWorksModal(works) {
+  // Select the modal content element where works will be displayed
   let modalContent = document.querySelector(
     "#modal-works.modal-gallery .modal-content"
   );
 
+  // Clear any existing content in the modal content area
+  modalContent.innerText = "";
 
-  if (!modalContent) {
-    console.log("Modal content not found");
-    return; 
-  }
+  // Loop through each work in the works array
+  works.forEach((work) => {
+    // Create a figure element for the work using the createWorkFigureInModal function
+    let workFigure = createWorkFigureInModal(work);
 
-  // Clear the existing content in the modal
-  modalContent.innerHTML = ""; 
+    // Append the newly created work figure to the modal content
+    modalContent.appendChild(workFigure);
 
-  
-  for (let i = 0; i < works.length; i++) {
-    let work = works[i]; // Get the current work
-    let workFigure = createWorkFigureInModal(work); // Create an HTML element for the work
-    modalContent.appendChild(workFigure); // Add the work figure to the modal content
-    setupTrashIconListener(work); // Set up the listener for deleting the work
-  }
+    // Set up the trash icon listener for the current work to enable deletion
+    setupTrashIconListener(work);
+  });
 }
 
 
-//6--
-//In page - la construction et le retourn d'un element <figure>,
-//qui va contenir toutes les infos sur le travaux
 function createWorkFigureInPage(work) {
-  // Create a <figure> element
+  // Create a <figure> element to represent the work
   let myFigure = document.createElement("figure");
 
-  // Set class and id for the figure
-  myFigure.className = `work-item category-id-${work.categoryId}`;
+  // Set class names for the figure element to categorize it
+  myFigure.className = `work-item category-id-0 category-id-${work.categoryId}`;
+  
+  // Set the ID for the figure element for easy reference
   myFigure.id = `work-item-popup-in-page-${work.id}`;
 
-  // Create and add the image element
-  let img = document.createElement("img");
-  img.src = work.imageUrl; 
-  img.alt = work.title; 
-  myFigure.appendChild(img);
+  // Append an image element for the work to the figure
+  myFigure.appendChild(createImageElement(work));
 
-  // Create and add a <figcaption>
-  let figCaption = document.createElement("figcaption");
-  figCaption.textContent = work.title; // Set the text of the caption to the work title
-  myFigure.appendChild(figCaption);
+  // Create <figcaption> for the title of the work
+  let figCaptionSite = document.createElement("figcaption");
+  figCaptionSite.textContent = work.title; // Set the text of the figcaption to the work's title
 
+  // Append the <figcaption> to the figure
+  myFigure.appendChild(figCaptionSite);
+
+  // Return the constructed figure element
   return myFigure;
 }
 
-//7--
-// picture creation
+
+// Function to create an image element for a work item
 function createImageElement(work) {
+  // Create a new <img> element
   let myImg = document.createElement("img");
+  
+  // Set the source of the image to the work's image URL
   myImg.src = work.imageUrl;
+
+  // Set the alt text of the image to the work's title for better accessibility
   myImg.alt = work.title;
+
+  // Return the created image element
   return myImg;
 }
-//8--
-//Creation trash
+
+
+// Function to create and configure the <i> element for the trash icon
 function createTrashIcon() {
+  // Create a new <i> element for the icon
   let trashIcon = document.createElement("i");
+  
+  // Add classes to the icon for Font Awesome styling
   trashIcon.classList.add("fa-solid", "fa-trash-can", "trash");
 
+  // Return the created trash icon element
   return trashIcon;
 }
-//9--
-// Delete window 
-function setupTrashIconListener(work) {
-  // Get the trash icon element using its ID
-  trashIcon = document.getElementById(`work-item-popup-in-modal-${work.id}`).querySelector(".trash");
 
+// Display a window to confirm deletion. If confirmed, then delete the work item.
+function setupTrashIconListener(work) {
+  // Find the trash icon associated with the specific work item
+  let trashIcon = document
+    .getElementById(`work-item-popup-in-modal-${work.id}`) // Get the modal for the work item using its ID
+    .querySelector(".trash"); // Select the trash icon inside that modal
+
+  // Check if the trash icon exists
   if (trashIcon) {
     // Add a click event listener to the trash icon
-    trashIcon.addEventListener("click", () => {
-      event.stopPropagation(); // Stop the event from bubbling up
+    trashIcon.addEventListener("click", async function (event) {
+      event.preventDefault(); // Prevent the default action of the event (like a link click)
+      event.stopPropagation(); // Stop the event from bubbling up to parent elements
 
-      // Show a confirmation dialog to the user
-      userConfirmed = confirm("Are you sure you want to delete this item?");
-
-      // If the user confirmed deletion
-      if (userConfirmed) {
-        deleteWork(work.id); 
-        alert("Item deleted successfully!"); 
+      // Ask the user for confirmation to delete the item
+      if (confirm("veux tu vraiment supprimer?")) {
+        // If confirmed, call the deleteWork function to delete the work item
+        await deleteWork(work.id);
       }
     });
   }
 }
-//10--
-// Function for delete 
-// request API for deletion 
-// token send for autorisation
+
+
 async function deleteWork(workId) {
-  // Get the token from local storage
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-      alert("You must be logged in to delete a work.");
-      return; // Exit if there's no token
-  }
-
-  // Make the DELETE request
-  const response = await fetch(`http://localhost:5678/api/works/${workId}`, {
+  
+    // Send a DELETE request to the API
+    const response = await fetch(`http://localhost:5678/api/works/${workId}`, {
       method: "DELETE",
       headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
+        "Content-Type": "application/json", // Specify the content type
+        Authorization: "Bearer " + localStorage.getItem("token"), // Include the token for authorization
       },
-  });
+    });
 
-  // Check if the response is successful
-  if (response.ok) {
-      // Remove the work items from the DOM
-      const workItem = document.getElementById(`work-item-${workId}`);
-      if (workItem) {
-          workItem.remove();
-      }
-
-      // Update the modal (optional)
-      fetchWorksAndUpdateModal(); // Reload works after deletion
-  } else {
-      // Handle deletion failure
-      alert("Failed to delete work. Please try again.");
-  }
-
-  // Reset the modal form (if necessary)
-  resetModalForm();
+    // Check if the response indicates success
+    if (response.ok) {
+      // Remove the work item from the DOM
+      document.getElementById(`work-item-${workId}`)?.remove();
+      document.getElementById(`work-item-popup-in-modal-${workId}`).remove();
+      document.getElementById(`work-item-popup-in-page-${workId}`).remove();
+      
+      // Reload works after deletion
+      await fetchWorksAndUpdateModal(); // Reload the works after deletion
+    } else {
+      // Handle server response if not successful
+      handleDeleteResponse(response, workId);
+    }
+  
 }
-
-//11-- response handling from API 
+// This function handles the server's response after trying to delete a work item.
 function handleDeleteResponse(response, workId) {
-  // Create a message variable to hold alert messages
-  let message;
-
-  // Check the response status
-  if (response.status === 500 || response.status === 503) {
-    message = "unexpected behavior!";
-  } else if (response.status === 401) {
-    message = "deletion impossible";
-  } else if (response.status === 200 || response.status === 204) {
-    // Remove the elements from the DOM
+  // Check the response status to see what happened
+  if (response.status === 200) { // If the item was deleted successfully
+    // Remove the item from the webpage
     document.getElementById(`work-item-${workId}`).remove();
     document.getElementById(`work-item-popup-in-page-${workId}`).remove();
     document.getElementById(`work-item-popup-in-modal-${workId}`).remove();
-    return; // Exit the function after successful deletion
-  } else {
-    message = "unknown error!";
+  } else if (response.status === 204) { // No Content (deleted successfully)
+    // Just do nothing; the item is already removed.
+  } else if (response.status === 401) {
+    alert("tu n'es pas authorisé à supprimer"); 
+  } else if (response.status === 500) { 
+    alert("probleme avec le server"); 
+  } else if (response.status === 503) { 
+    alert("server est indisponible"); 
   }
-
-  // Show the alert with the determined message
-  alert(message);
 }
 
-//12--
-// Modal visibility 
+
+
+// This function shows the modal content while hiding the main modal and works modal.
 function openWorkModal() {
-  document.getElementById("modal").style.display = "none";
-  document.getElementById("modal-works").style.display = "none";
-  document.getElementById("modal-works").style.cssText = ` display: none`;
+  // Get the main modal and works modal elements
+  const mainModal = document.getElementById("modal"); // Get the main modal
+  const worksModal = document.getElementById("modal-works"); // Get the works modal
+  const modalContent = document.querySelector(".modal-content"); // Get the content area of the modal
 
-  document.querySelector(".modal-content").style.cssText = `display: flex`;
+  // Hide the main modal and works modal
+  mainModal.style.display = "none"; // Hide the main modal
+  worksModal.style.display = "none"; // Hide the works modal
+
+  // Show the modal content
+  modalContent.style.display = "flex"; // Display the modal content
 }
-//13--
-//Manage modal closures
+
+
+// This function manages the closing of modals in the application.
 function setupModalCloseListeners() {
-  // Select all modal elements
+  // Select the modal-works and modal-edit elements
   const modalWorks = document.getElementById("modal-works");
   const modalEdit = document.getElementById("modal-edit");
-  const modal = document.getElementById("modal");
+  const mainModal = document.getElementById("modal");
 
-  // If modal elements exist, add event listeners
+  // Add a click event to the modal-works to stop it from closing when clicked inside
   if (modalWorks) {
-    modalWorks.addEventListener("click", (event) => event.stopPropagation());
+    modalWorks.addEventListener("click", (event) => {
+      event.stopPropagation(); // Prevent the click from closing the modal
+    });
   }
 
+  // Add a click event to the modal-edit to stop it from closing when clicked inside
   if (modalEdit) {
-    modalEdit.addEventListener("click", (event) => event.stopPropagation());
+    modalEdit.addEventListener("click", (event) => {
+      event.stopPropagation(); // Prevent the click from closing the modal
+    });
   }
 
-  // Add listener to close modal when clicking outside of it
-  if (modal) {
-    modal.addEventListener("click", closeModal);
+  // When the main modal is clicked, close it
+  if (mainModal) {
+    mainModal.addEventListener("click", closeModal);
   }
 
-  // Select buttons to close modals
-  const closeButton1 = document.getElementById("button-to-close-first-window");
-  const closeButton2 = document.getElementById("button-to-close-second-window");}
+  // Add event listeners for the close buttons
+  const closeFirstButton = document.getElementById("button-to-close-first-window");
+  if (closeFirstButton) {
+    closeFirstButton.addEventListener("click", closeModal); // Close the modal
+  }
 
-//14--
-//Hide the main modal and the 2 sections: modal-works and modal-edit
-function closeModal(event) {
-  document.getElementById("modal").style.display = "none";
-  document.getElementById("modal-works").style.display = "none";
-  document.getElementById("modal-edit").style.display = "none";
+  const closeSecondButton = document.getElementById("button-to-close-second-window");
+  if (closeSecondButton) {
+    closeSecondButton.addEventListener("click", closeModalAndReset); // Close and reset
+  }
 }
-//15--
-// close lodal and reset 
+
+
+// This function hides the main modal and its two sections: modal-works and modal-edit
+function closeModal(event) {
+  // Find the main modal by its ID and hide it
+  document.getElementById("modal").style.display = "none"; // Hide the main modal
+
+  // Find the modal for works by its ID and hide it
+  document.getElementById("modal-works").style.display = "none"; // Hide the works modal
+
+  // Find the modal for editing by its ID and hide it
+  document.getElementById("modal-edit").style.display = "none"; // Hide the edit modal
+}
+
+
+// close the modal and reset
 function closeModalAndReset(event) {
   closeModal(event);
   resetModalForm();
 }
-//16--
-// Reset modal form
-// If the element with id = "form-image-preview" exists, it is removed from the DOM
-// Show the gray icon with the sun and the mountains
-// Show label id new-image
-// Display the <p> tag which gives information on the size of the photo
-// Padding for the div which contains the 3 previous elements
-// Change the color of the validate button to indicate that it is not active
+
+
+// This function resets the modal form to its starting state
 function resetModalForm() {
-  if (document.getElementById("form-image-preview")) {
-    document.getElementById("form-image-preview").remove();
+  // Check if the image preview exists
+  const imagePreview = document.getElementById("form-image-preview");
+  if (imagePreview) {
+    // If it exists, remove it from the document
+    imagePreview.remove();
   }
-  document.getElementById("modal-edit-work-form").reset();
-  document.getElementById("photo-add-icon").style.display = "block";
-  document.getElementById("new-image").style.display = "block";
-  document.getElementById("photo-size").style.display = "block";
-  document.getElementById("modal-edit-new-photo").style.padding =
-    "30px 0 19px 0";
-  document.getElementById("submit-new-work").style.backgroundColor = "grey";
+
+  // Find the form where the user edits the work and reset it
+  const editForm = document.getElementById("modal-edit-work-form");
+  editForm.reset(); // Clear all input fields in the form
+
+  // Show the icon that allows users to add a photo
+  const addIcon = document.getElementById("photo-add-icon");
+  addIcon.style.display = "block"; // Make the add icon visible
+
+  // Show the label for the new image input
+  const newImageLabel = document.getElementById("new-image");
+  newImageLabel.style.display = "block"; // Make the new image label visible
+
+  // Show the paragraph that gives information about photo dimensions
+  const sizeInfo = document.getElementById("photo-size");
+  sizeInfo.style.display = "block"; // Make the size info visible
+
+  // Set the padding for the div that contains the photo-related elements
+  const photoDiv = document.getElementById("modal-edit-new-photo");
+  photoDiv.style.padding = "30px 0 19px 0"; // Adjust the padding
+
+  // Change the submit button color to show it's not active yet
+  const submitButton = document.getElementById("submit-new-work");
+  submitButton.style.backgroundColor = "grey"; // Set the button color to grey
 }
 
-//17--
-// Navigate between the 2 sections of the modal + Reset the form to edit
+
+// Function to navigate between the two sections of the modal and reset the form for editing
 function setupModalEditListeners() {
-  // Find the "Add" button that shows the edit modal and hide the works list
-  let addButton = document.getElementById("modal-edit-add");
-  addButton.addEventListener("click", function (event) {
-    event.preventDefault(); 
-    document.getElementById("modal-works").style.display = "none";
-    document.getElementById("modal-edit").style.display = "block";
-  });
-
-  // Find the "Return" arrow button and set it up to go back to the works list
-  let returnButton = document.getElementById("arrow-return");
-  returnButton.addEventListener("click", function (event) {
-    event.preventDefault();
-    document.getElementById("modal-works").style.display = "block"; 
-    document.getElementById("modal-edit").style.display = "none"; 
-    resetModalForm(); // Reset the form (this function should be defined elsewhere)
-  });
-}
-//18--
-// Ask the API for the categories and pass them to the populateCategories function to increase the list
-async function fetchCategories() {
-    const response = await fetch("http://localhost:5678/api/categories");
-    const data = await response.json();
-    populateCategories(data);
-  
-}
-//19--
-// Creation of a list of dropdown options with the categories obtained previously
-function populateCategories(categories) {
-
-  const selectElement = document.querySelector("select.choice-category");
-
-  // Loop through each category in the categories array
-  categories.forEach(function(category) {
-    // Create a new <option> element
-    let myOption = document.createElement("option");
-    
-    // Set the value and text content of the option
-    myOption.value = category.id;
-    myOption.textContent = category.name;
-    
-    // Append the new option to the select element
-    selectElement.appendChild(myOption);
-  });
-}
-
-//20--//Management of the SUBMIT event sent by the "Validate" button on the photo addition
-function setupFormHandlers() {
+  // Set up the "modal-edit-add" button from the works list
   document
-    .getElementById("form-image")
-    .addEventListener("change", function (event) {
-      event.preventDefault(); 
-      handleImagePreview();
+    .getElementById("modal-edit-add")
+    .addEventListener("click", function (event) {
+      event.preventDefault(); // Prevent the default action of the button
+      document.getElementById("modal-works").style.display = "none"; // Hide the works modal
+      document.getElementById("modal-edit").style.display = "block"; // Show the edit modal
+    });
+  // Set up the "arrow-return" button to return to the works modal
+  document
+    .getElementById("arrow-return")
+    .addEventListener("click", function (event) {
+      event.preventDefault(); // Prevent the default action of the button
+      document.getElementById("modal-works").style.display = "block"; // Show the works modal
+      document.getElementById("modal-edit").style.display = "none"; // Hide the edit modal
+      resetModalForm(); // Call the function to reset the form fields
     });
 }
 
-//21--
-//// Image management - does it respect the dimensions?
-//If there is at least one selected image type file
-// the file is stored in the "file" variable
-// The function stops if the image is too large
-// Anonymous function for the FileReader onload event.
-// If the file is read successfully, we call this function and give it an "e" event.
-function handleImagePreview() {
-  // Get the file input element by its ID
-  let fileInput = document.getElementById("form-image");
-  
-  // Set the maximum file size to 4MB (4 * 1024 * 1024 bytes)
-  let maxFileSize = 4 * 1024 * 1024;
-  let errorMessage = document.getElementById("error-message");
-  errorMessage.textContent = ""; // Reset the error message
 
-  // Check if a file was selected
+// Function to fetch categories from the API and fill the list using populateCategories
+async function fetchCategories() {
+    // Send a request to the API to get categories
+    const response = await fetch("http://localhost:5678/api/categories");
+    // Convert the response data to JSON format
+    const data = await response.json();
+    
+    // Call the function to populate the categories with the fetched data
+    populateCategories(data);
+  
+}
+
+// Function to create a dropdown list of options using the categories received
+function populateCategories(categories) {
+  // Loop through each category in the categories array
+  categories.forEach((category) => {
+    // Create a new option element for the dropdown menu
+    let myOption = document.createElement("option");
+    
+    // Set the value of the option to the category's unique ID
+    myOption.value = category.id;
+    
+    // Set the text that will be displayed for the option to the category's name
+    myOption.textContent = category.name;
+    
+    // Find the <select> element with the class "choice-category" and add the option to it
+    document.querySelector("select.choice-category").appendChild(myOption);
+  });
+}
+
+// Function to set up handlers for form events
+function setupFormHandlers() {
+  // Find the file input element with the ID "form-image"
+  document
+    .getElementById("form-image").addEventListener("change", function (event) {
+      // This function runs when the user selects a new file
+
+      event.preventDefault(); // Prevent the page from refreshing
+
+      // Call the function that shows a preview of the selected image
+      handleImagePreview(); 
+    });
+}
+
+// Function to handle the image upload and show a preview
+function handleImagePreview() {
+  // Get the file input element where users can select an image
+  let fileInput = document.getElementById("form-image"); // This is the "+ Add photo" button in the second modal
+  let maxFileSize = 4 * 1024 * 1024; // Maximum allowed file size is 4 MB (megabytes)
+
+  // Check if the user has selected at least one file
   if (fileInput.files.length > 0) {
-    // Get the first file from the file input
+    // Get the first file that the user selected
     let file = fileInput.files[0];
 
-    // Validate file size and type
-    if (file.size > maxFileSize) {
-      errorMessage.textContent = "The file is too large. Maximum size is 4MB.";
-      return; // Stop the function if the file is invalid
-    }
-    if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
-      errorMessage.textContent = "Unsupported format. Please upload a JPEG or PNG image.";
+    // Check if the file is too large or not an image
+    if (
+      file.size > maxFileSize || // Check if the file size is more than 4 MB
+      (file.type !== "image/jpeg" && // Check if the file type is not JPEG
+        file.type !== "image/png" && // Check if the file type is not PNG
+        file.type !== "image/jpg") // Check if the file type is not JPG
+    ) {
+      // Show an alert if the file is too large or the format is not allowed
+      alert(
+        "le fichier depasse 4mo (.jpeg, .jpg, or .png)"
+      );
       return; // Stop the function if the file is invalid
     }
 
-    // Create a FileReader object to read the file data
+    // Create a FileReader object to read the file
     let reader = new FileReader();
+    
+    // Use addEventListener to handle the load event of the FileReader
+    reader.addEventListener('load', function (e) {
+      // Call the function to show the image preview using the file data
+      updateImagePreview(e.target.result);
+    });
 
-    // When the file is loaded, display the image in the preview
-    reader.onload = function (go) {
-      // Get the image element where the preview will be shown
-      let imagePreview = document.getElementById("image-preview");
-
-      // Set the image source to the loaded file data (base64 format)
-      imagePreview.src = go.target.result;
-
-      // Make sure the image is visible (it might be hidden initially)
-      imagePreview.style.display = "block";
-    };
-
-    // Read the file as a data URL (this will trigger the onload event)
+    // Start reading the file as a data URL (to show the image)
     reader.readAsDataURL(file);
   }
 }
 
-// Attach the function to the file input's change event, so it runs when a file is selected
-document.getElementById("form-image").addEventListener("change", handleImagePreview);
+// Function to add a new photo to the gallery and modal
+async function submitNewWork() {
+  // Create a new FormData object to hold the form data
+  let formData = new FormData();
+  
+  // Collect data from the form
+  formData.append("title", document.getElementById("form-title").value); 
+  formData.append("category", document.getElementById("form-category").value); 
+  formData.append("image", document.getElementById("form-image").files[0]); 
 
-//22--
-//add new picture in the gallery and modal
-function submitNewWork() {
-  // Get form values
-  title = document.getElementById("form-title").value;
-  category = document.getElementById("form-category").value;
-  imageFile = document.getElementById("form-image").files[0];
+  // Send a POST request to the API to add the new work
+  let response = await fetch("http://localhost:5678/api/works", {
+    method: "POST", // Use POST method to send the data
+    headers: {
+      Authorization: "Bearer " + localStorage.getItem("token"), // Add authorization token
+    },
+    body: formData, // Attach the FormData object to the request body
+  });
 
-  // Basic validation to check if fields are filled
-  if (!title || !category || !imageFile) {
-    alert("Please fill in all fields and select an image.");
-    return; // Exit the function if validation fails
+  // Handle the response from the request
+  await handleNewWorkResponse(response); 
+
+  // Check if the request was successful
+  if (response.ok) {
+    let json = await response.json(); // Parse the response data as JSON
+    addNewWorkToPage(json); // Add the new work to the gallery
+    addNewWorkToModale(json); // Add the new work to the modal
   }
-
-  // Create a new FormData object to collect the form data
-  var formData = new FormData();
-  formData.append("title", title);
-  formData.append("category", category);
-  formData.append("image", imageFile);
-
-  // Prepare the request
-  xhr = new XMLHttpRequest();
-  xhr.open("POST", "http://localhost:5678/api/works", true);
-  xhr.setRequestHeader("Authorization", "Bearer " + localStorage.getItem("token"));
-
-  // Define what happens on successful data submission
-  xhr.onload = function() {
-    if (xhr.status === 200) {
-      var jsonResponse = JSON.parse(xhr.responseText);
-      addNewWorkToPage(jsonResponse);  // Update the page with the new work
-      addNewWorkToModale(jsonResponse); // Add new work to the modal
-    } else {
-      alert("Error: " + xhr.status); // Display error if the request fails
-    }
-  };
-
-  // Send the request with the form data
-  xhr.send(formData);
 }
 
-//23--
-//Management of the API response, after sending a new job
+// Function to handle the API response after sending a new work
 function handleNewWorkResponse(response) {
-  if (response.status === 500) { // Unexpected Error
-    alert("Unexpected Error");
-  } else if (response.status === 401) { // Unauthorized
-    alert("Unauthorized");
-  } else if (response.status === 400) { // Bad Request
-    alert("Bad Request");
-  } else if (response.status === 201) { // Created
-    return response.json(); // Return parsed JSON for created response
-  } else { // Unknown Error
-    alert("Unknown Error");
+  if (response.status === 500) {
+    alert("erreur inatendue!"); // Server error
+  } else if (response.status === 401) {
+    alert("pas authorisé!"); // User not authorized
+  } else if (response.status === 400) {
+    alert("impossible à ajouter"); // Bad request
+  } else if (response.status === 201) {
+    return response; // Work created successfully
   }
 }
 
-
-//24--
-// Add new work to the gallery Close and reset the add modal
+// Function to add a new work to the gallery
 function addNewWorkToPage(json) {
+  // Create a new figure element for the gallery using the provided data
   let myFigure = createWorkFigureInPage(json);
+  
+  // Add the new figure to the gallery section on the page
   document.querySelector("div.gallery").appendChild(myFigure);
-  //closeModalAndReset();
+  
+  // Reset the modal form to prepare for the next entry
   resetModalForm();
 }
 
-//25--
-// add new work in the modal
+// Function to add a new work to the modal
 function addNewWorkToModale(json) {
+  // Create a new figure element for the modal using the provided data
   let myFigure = createWorkFigureInModal(json);
-  document
-    .querySelector("#modal-works.modal-gallery .modal-content")
-    .appendChild(myFigure);
-
-  // closeModalAndReset();
+  
+  // Add the new figure to the modal's content area
+  document.querySelector("#modal-works.modal-gallery .modal-content").appendChild(myFigure);
+  
+  // Reset the modal form to prepare for the next entry
   resetModalForm();
+  
+  // Set up the trash icon listener for the new work in the modal
   setupTrashIconListener(json);
 }
-//26--
-//preview a new photo, hide elements and modify the container style
-//try to get the image preview element with id=form-image-preview
-//if the element does not exist, it is created with its characteristics: id, src, etc...
-//IF - if the element with id = form-image-preview does not exist, the imgPreview element is added to the top of the element
-//with id = modal-edit-new-photo (the one with the sun+mountain icon + "+Add photo" button + image dimension)
+
+// Function to preview a new photo and update the modal layout
 function updateImagePreview(imageSrc) {
-  let imgPreview =
-    document.getElementById("form-image-preview") ||
-    document.createElement("img");
-  imgPreview.id = "form-image-preview";
-  imgPreview.src = imageSrc;
-  imgPreview.alt = "Prévisualisation de la nouvelle photo";
-  imgPreview.style.width = "129px";
-  imgPreview.style.height = "168px";
-  imgPreview.style.objectFit = "cover";
+  // Try to get the image preview element by its ID
+  let imgPreview = document.getElementById("form-image-preview") || document.createElement("img");
+  
+  // Set the properties for the image preview
+  imgPreview.id = "form-image-preview"; // Assign an ID to the image element
+  imgPreview.src = imageSrc; // Set the source of the image to the provided imageSrc
+  imgPreview.alt = "Preview of the new photo"; // Set alt text for accessibility
+  imgPreview.style.width = "129px"; // Set the width of the image
+  imgPreview.style.height = "168px"; // Set the height of the image
+  imgPreview.style.objectFit = "cover"; // Ensure the image covers the area without distortion
+
+  // If the image preview element was just created, prepend it to the modal
   if (!document.getElementById("form-image-preview")) {
     let formDiv = document.getElementById("modal-edit-new-photo");
-    formDiv.prepend(imgPreview);
+    formDiv.prepend(imgPreview); // Add the image preview to the beginning of the modal
   }
-  document.getElementById("photo-add-icon").style.display = "none";
-  document.getElementById("new-image").style.display = "none";
-  document.getElementById("photo-size").style.display = "none";
 
-  document.getElementById("modal-edit-new-photo").style.padding = "0";
+  // Hide the elements related to adding a new photo
+  document.getElementById("photo-add-icon").style.display = "none"; // Hide the add photo icon
+  document.getElementById("new-image").style.display = "none"; // Hide the new image prompt
+  document.getElementById("photo-size").style.display = "none"; // Hide the photo size information
+
+  // Adjust the padding of the modal containing the new photo
+  document.getElementById("modal-edit-new-photo").style.padding = "0"; // Remove padding for better layout
 }
 
 
-//27--
-//select all elements of the form. If change => call the validation function
+// Function to bind validation to form fields
 function bindFormFieldsCheck() {
-  let formFields = document.querySelectorAll(
-    "#modal-edit-work-form input, #modal-edit-work-form select"
+  // Select all input and select elements in the form
+  let formFields = document.querySelectorAll("#modal-edit-work-form input, #modal-edit-work-form select"
   );
+  // Loop through each form field
   formFields.forEach((field) => {
+    // Add an event listener for input changes
     field.addEventListener("input", validateFormFields);
   });
 }
 
-//28--
-//Initializing a variable to true - allFieldsFilled
-//Check if the value of each element in the formFields list is empty
-//(trim eliminates leading and trailing spaces)
-//If an element is empty, the value of the allFieldsFilled variable is set to false
-//The "Validate" button with id = submit-new-work changes color depending on the value of the allFieldsFilled variable
-//if allFieldsFilled is true - green color
-//allFieldsFilled is false - gray color
-//after pressing the validate button, the modal closes
+// Function to validate form fields and update the submit button's color
 function validateFormFields() {
-  // Select all input and select elements within the form
+  // Select all input and select elements in the form
   let formFields = document.querySelectorAll(
     "#modal-edit-work-form select, #modal-edit-work-form input"
   );
 
-  // Check if all fields are filled
-  for (let i = 0; i < formFields.length; i++) {
-    if (!formFields[i].value.trim()) {
-      // If any field is empty, change the button color and return
-      document.getElementById("submit-new-work").style.backgroundColor = "#A7A7A7";
-      return; // Exit the function early
-    }
-  }
+  let allFieldsFilled = true; // Start by assuming all fields are filled
 
-  // If all fields are filled, change the button color to indicate it's ready to submit
-  document.getElementById("submit-new-work").style.backgroundColor = "#1D6154";
+  // Check each form field to see if it's empty
+  formFields.forEach((field) => {
+    // If a field is empty, set allFieldsFilled to false
+    if (!field.value.trim()) {
+      allFieldsFilled = false;
+    }
+  });
+
+  // Change the background color of the submit button based on field validation
+  document.getElementById("submit-new-work").style.backgroundColor =
+    allFieldsFilled ? "#1D6154" : "#A7A7A7"; // Green if filled, gray if not
 }
 
+// Function to listen for the submit event on the modal edit form
 function ListenSubmitModalEdit() {
-  // Add a submit event listener to the form
+  // Add an event listener for the submit event on the form
   document
     .getElementById("modal-edit-work-form")
     .addEventListener("submit", function (event) {
-      event.preventDefault(); // Prevent the page from reloading
-
-      // Validate form fields
-      validateFormFields();
-
-      // Check if the button is enabled (fields are filled)
-      if (document.getElementById("submit-new-work").style.backgroundColor === "#1D6154") {
-        submitNewWork(); // Call the submission function
-      } else {
-        alert("Please fill all fields before submitting."); // Alert the user
-      }
+      event.preventDefault(); // Prevent the default form submission behavior (page reload)
+      
+      // Call the function to submit the new work
+      submitNewWork();
     });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  handleAdminMode(); //check if there is a token and userId in localStorage (authenticated user)
-  clickOnLinkModifier(); // click on the "edit" link
-  setupModalCloseListeners(); //Manage modal closures
-  setupModalEditListeners(); // Navigate between the 2 sections of the modal + Reset the form to edit
-  fetchCategories(); // Ask the API for the categories and pass them to the populateCategories function to populate the list
-  setupFormHandlers(); //Management of the SUBMIT event sent by the "Validate" button of the photo addition form
-  validateFormFields(); //Check if all fields are filled in, to add a photo
-  bindFormFieldsCheck(); //select all elements of the form. If change => call the validation function
+
+/* --- When logged in with ---
+   --- user and password: --- */
+
+// Wait for the HTML document to fully load before running the script
+document.addEventListener("DOMContentLoaded", () => {
+  // Check if there is a token and userId in localStorage (indicating an authenticated user)
+  handleAdminMode();
+
+  // Set up a click event listener for the "edit" link
+  clickOnLinkModify();
+
+  // Set up listeners to manage the closing of modals
+  setupModalCloseListeners();
+
+  // Set up listeners to navigate between sections in the modal and reset the form for editing
+  setupModalEditListeners();
+
+  // Request categories from the API and pass them to the function to populate the categories list
+  fetchCategories();
+
+  // Set up the event handler for the "Submit" button of the photo upload form
+  setupFormHandlers();
+
+  // Validate if all fields are filled in before adding a photo
+  validateFormFields();
+
+  // Select all elements in the form. If any change occurs, call the validation function
+  bindFormFieldsCheck();
+
+  // Set up listeners for the submit event on the edit modal
   ListenSubmitModalEdit();
 });
+
+
+
